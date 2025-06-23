@@ -37,10 +37,10 @@ jobs:
 
     - name: Install dependencies
       run: |
-        apt update
-        apt install libwebp-dev make yasm
+        apt-get update
+        apt-get install -y libwebp-dev make yasm wget
         
-    - name: Cache cmake 3.10.0
+    - name: Cache cmake
       uses: actions/cache@v3
       id: cache-cmake-download
       with:
@@ -52,7 +52,9 @@ jobs:
         # Get the minimum version of cmake dlib supports
         wget https://cmake.org/files/v3.10/cmake-3.10.0-Linux-x86_64.tar.gz
         tar -xf cmake-3.10.0-Linux-x86_64.tar.gz -C ~
+        export PATH=$PATH:~/cmake-3.10.0-Linux-x86_64/bin/cmake
       if: steps.cache-cmake-download.outputs.cache-hit != 'true'
+      
 
     - name: Cache FFmpeg 5
       uses: actions/cache@v3
@@ -76,7 +78,7 @@ jobs:
       run: |
         mkdir build
         cd build
-        ~/cmake-3.10.0-Linux-x86_64/bin/cmake -DCMAKE_PREFIX_PATH=/home/runner/ffmpeg-n5.1.3_installation .. 
+        cmake -DCMAKE_PREFIX_PATH=/home/runner/ffmpeg-n5.1.3_installation .. 
     
     - name: Build just tests
       run: |
@@ -97,12 +99,12 @@ jobs:
     - uses: actions/checkout@v2
     - name: Install dependencies
       run: |
-        apt update
-        apt install libwebp-dev libavformat-dev libavcodec-dev libavdevice-dev libavfilter-dev libswresample-dev libswscale-dev libavutil-dev 
-        apt install libopenblas-dev liblapack-dev
+        apt-get update
+        apt-get install -y libwebp-dev libavformat-dev libavcodec-dev libavdevice-dev libavfilter-dev libswresample-dev libswscale-dev libavutil-dev 
+        apt-get install -y libopenblas-dev liblapack-dev wget
     - name: Install gcc 11
       run: |
-        apt install gcc-11 g++-11
+        apt-get install -y gcc-11 g++-11
         update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-11 110 --slave /usr/bin/g++ g++ /usr/bin/g++-11 --slave /usr/bin/gcov gcov /usr/bin/gcov-11
     - name: Configure
       run: cmake ${{ github.workspace }}/dlib/test -B build
@@ -127,8 +129,8 @@ jobs:
     - uses: actions/checkout@v2
     - name: Install dependencies
       run: |
-        apt update
-        apt install libwebp-dev libavformat-dev libavcodec-dev libavdevice-dev libavfilter-dev libswresample-dev libswscale-dev libavutil-dev 
+        apt-get update
+        apt-get install -y libwebp-dev libavformat-dev libavcodec-dev libavdevice-dev libavfilter-dev libswresample-dev libswscale-dev libavutil-dev wget
     - name: Configure
       run: |
         export CC=/usr/bin/clang
@@ -148,8 +150,8 @@ jobs:
 
     - name: Install dependencies
       run: |
-        apt update
-        apt install make yasm 
+        apt-get update
+        apt-get install -y make yasm wget
 
     - name: Cache FFmpeg 7
       uses: actions/cache@v3
@@ -180,7 +182,7 @@ jobs:
     - uses: actions/checkout@v2
     - name: Configure
       run: |
-        # don't use CMake 3.25.0 https://gitlab.kitware.com/cmake/cmake/-/issues/23975
+        # don't use cmake 3.25.0 https://gitlab.kitware.com/cmake/cmake/-/issues/23975
         pip3 install cmake==3.24.0
         cmake . -B build
     - name: Build just tests
@@ -196,7 +198,7 @@ jobs:
     - uses: actions/checkout@v2
     - name: Configure
       run: |
-        # don't use CMake 3.25.0 https://gitlab.kitware.com/cmake/cmake/-/issues/23975
+        # don't use cmake 3.25.0 https://gitlab.kitware.com/cmake/cmake/-/issues/23975
         pip3 install cmake==3.24.0
         cmake . -B build
     - name: Build just tests
