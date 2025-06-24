@@ -34,7 +34,7 @@ defaults:
     working-directory: dlib/test
 
 jobs:
-  ubuntu-22-04-gcc-default-cmake-3-10-ffmpeg5_act:
+  ubuntu-22-04-gcc-default-cmake-3-10-ffmpeg5_act: # Use old cmake for ffmpeg 5
     runs-on: 'ubuntu-22.04'
     steps:
     - uses: actions/checkout@v2
@@ -56,8 +56,6 @@ jobs:
         # Get the minimum version of cmake dlib supports
         wget https://cmake.org/files/v3.10/cmake-3.10.0-Linux-x86_64.tar.gz
         tar -xf cmake-3.10.0-Linux-x86_64.tar.gz -C ~
-        # Add it to the path
-        export PATH=~/cmake-3.10.0-Linux-x86_64/bin:$PATH
 
       if: steps.cache-cmake-download.outputs.cache-hit != 'true'
       
@@ -99,7 +97,6 @@ jobs:
         cd build
         make -j2
 
-  ubuntu-latest-gcc-11-blas_act:
     runs-on: 'ubuntu-latest'
     steps:
     - uses: actions/checkout@v2
@@ -107,51 +104,34 @@ jobs:
     - name: Install dependencies
       run: |
         apt-get update
-        apt-get install -y make yasm wget sudo build-essential
+        apt-get install -y make yasm wget sudo build-essential cmake
         apt-get install -y libwebp-dev libavformat-dev libavcodec-dev libavdevice-dev libavfilter-dev libswresample-dev libswscale-dev libavutil-dev 
         apt-get install -y libopenblas-dev liblapack-dev
     - name: Install gcc 11
       run: |
         apt-get install -y gcc-11 g++-11
         update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-11 110 --slave /usr/bin/g++ g++ /usr/bin/g++-11 --slave /usr/bin/gcov gcov /usr/bin/gcov-11
-    
-    - name: Cache cmake
-      uses: actions/cache@v3
-      id: cache-cmake-download
-      with:
-        # cache this folder:
-        path: ~/cmake-3.10.0-Linux-x86_64
-        key: cmake-3.10.0_try3
-        
-    - run: |
-        # Get the minimum version of cmake dlib supports
-        wget https://cmake.org/files/v3.10/cmake-3.10.0-Linux-x86_64.tar.gz
-        tar -xf cmake-3.10.0-Linux-x86_64.tar.gz -C ~
-        # Add it to the path
-        export PATH=~/cmake-3.10.0-Linux-x86_64/bin:$PATH
 
-      if: steps.cache-cmake-download.outputs.cache-hit != 'true'
-    
     - name: Configure
       run: |
         mkdir build
         cd build
-        ~/cmake-3.10.0-Linux-x86_64/bin/cmake ..
+        cmake ..
 
     - name: Configure Tests
-      run: ~/cmake-3.10.0-Linux-x86_64/bin/cmake ${{ github.workspace }}/dlib/test -B build
+      run: cmake ${{ github.workspace }}/dlib/test -B build
     - name: Build just tests
-      run: ~/cmake-3.10.0-Linux-x86_64/bin/cmake --build build --config Release --target dtest -- -j 4 #--parallel 4 
+      run: cmake --build build --config Release --target dtest --parallel 4 
     - name: Test
       run: build/dtest --runall -q
     - name: Build examples, etc
-      run: ~/cmake-3.10.0-Linux-x86_64/bin/cmake --build build --config Release -- -j 2 #--parallel 2 
+      run: cmake --build build --config Release --parallel 2 
 
     # Test the BLAS bindings
     - name: Configure BLAS binding tests
-      run: ~/cmake-3.10.0-Linux-x86_64/bin/cmake ${{ github.workspace }}/dlib/test/blas_bindings -B build_blas_bindings
+      run: cmake ${{ github.workspace }}/dlib/test/blas_bindings -B build_blas_bindings
     - name: Build blas binding tests
-      run: ~/cmake-3.10.0-Linux-x86_64/bin/cmake --build build_blas_bindings --config Debug -- -j 4 # --parallel 4
+      run: cmake --build build_blas_bindings --config Debug --parallel 4
     - name: Test BLAS bindings
       run: build_blas_bindings/dtest --runall -q
 
@@ -162,18 +142,19 @@ jobs:
     - name: Install dependencies
       run: |
         apt-get update
+        apt-get install -y make yasm wget sudo build-essential cmake
         apt-get install -y libwebp-dev libavformat-dev libavcodec-dev libavdevice-dev libavfilter-dev libswresample-dev libswscale-dev libavutil-dev wget
     - name: Configure
       run: |
         export CC=/usr/bin/clang
         export CXX=/usr/bin/clang++
-        ~/cmake-3.10.0-Linux-x86_64/bin/cmake ${{ github.workspace }}/dlib/test -B build -DUSE_AVX_INSTRUCTIONS=1
+        cmake ${{ github.workspace }}/dlib/test -B build -DUSE_AVX_INSTRUCTIONS=1
     - name: Build just tests
-      run: ~/cmake-3.10.0-Linux-x86_64/bin/cmake --build build --config Release --target dtest -- -j 4 # --parallel 4
+      run: cmake --build build --config Release --target dtest --parallel 4
     - name: Test
       run: build/dtest --runall -q
     - name: Build examples, etc
-      run: ~/cmake-3.10.0-Linux-x86_64/bin/cmake --build build --config Release -- -j 2 # --parallel 2
+      run: cmake --build build --config Release --parallel 2
 
   ubuntu-22-04-ffmpeg7_act:
     runs-on: 'ubuntu-22.04'
@@ -183,7 +164,7 @@ jobs:
     - name: Install dependencies
       run: |
         apt-get update
-        apt-get install -y make yasm wget
+        apt-get install -y make yasm wget sudo build-essential cmake
 
     - name: Cache FFmpeg 7
       uses: actions/cache@v3
@@ -204,9 +185,9 @@ jobs:
         cd ..
         
     - name: Configure
-      run: ~/cmake-3.10.0-Linux-x86_64/bin/cmake . -B build -DCMAKE_PREFIX_PATH=/home/runner/ffmpeg-n7.0.1_installation
+      run: cmake . -B build -DCMAKE_PREFIX_PATH=/home/runner/ffmpeg-n7.0.1_installation
     - name: Build ffmpeg example
-      run: ~/cmake-3.10.0-Linux-x86_64/bin/cmake --build build --config Release --target ffmpeg_video_muxing_ex --parallel 4
+      run: cmake --build build --config Release --target ffmpeg_video_muxing_ex --parallel 4
 
   windows-latest_act:
     runs-on: 'windows-latest'
@@ -216,13 +197,13 @@ jobs:
       run: |
         # don't use cmake 3.25.0 https://gitlab.kitware.com/cmake/cmake/-/issues/23975
         pip3 install cmake==3.24.0
-        ~/cmake-3.10.0-Linux-x86_64/bin/cmake . -B build
+        cmake . -B build
     - name: Build just tests
-      run: ~/cmake-3.10.0-Linux-x86_64/bin/cmake --build build --config Release --target dtest --parallel 4
+      run: cmake --build build --config Release --target dtest --parallel 4
     - name: Test
       run: build/Release/dtest.exe --runall -q
     - name: Build ancillary tools
-      run: ~/cmake-3.10.0-Linux-x86_64/bin/cmake --build build --config Release --target imglab htmlify dtoc --parallel 4
+      run: cmake --build build --config Release --target imglab htmlify dtoc --parallel 4
 
   windows-2019_act:
     runs-on: 'windows-2019'
@@ -232,11 +213,11 @@ jobs:
       run: |
         # don't use cmake 3.25.0 https://gitlab.kitware.com/cmake/cmake/-/issues/23975
         pip3 install cmake==3.24.0
-        ~/cmake-3.10.0-Linux-x86_64/bin/cmake . -B build
+        cmake . -B build
     - name: Build just tests
-      run: ~/cmake-3.10.0-Linux-x86_64/bin/cmake --build build --config Debug --target dtest --parallel 4
+      run: cmake --build build --config Debug --target dtest --parallel 4
     - name: Build ancillary tools
-      run: ~/cmake-3.10.0-Linux-x86_64/bin/cmake --build build --config Release --target imglab htmlify dtoc --parallel 4
+      run: cmake --build build --config Release --target imglab htmlify dtoc --parallel 4
   
   # Disable this because macos targets aren't working on github actions right now.
   #macos-latest:
