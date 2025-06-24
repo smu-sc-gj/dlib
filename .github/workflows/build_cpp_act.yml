@@ -1,3 +1,6 @@
+# Note:
+# To run - sudo act push -s GITHUB_TOKEN="$(gh auth token)" -j 'ubuntu-22-04-gcc-default-cmake-3-10-ffmpeg5_act' -P nektos/act-environments-ubuntu:18.04
+
 name: C++
 
 on:
