@@ -30,7 +30,7 @@ defaults:
     working-directory: dlib/test
 
 jobs:
-  ubuntu-22-04-gcc-default-cmake-3-10-ffmpeg5:
+  ubuntu-22-04-gcc-default-cmake-3-10-ffmpeg5_act:
     runs-on: 'ubuntu-22.04'
     steps:
     - uses: actions/checkout@v2
@@ -38,7 +38,7 @@ jobs:
     - name: Install dependencies
       run: |
         apt-get update
-        apt-get install -y libwebp-dev make yasm wget
+        apt-get install -y libwebp-dev make yasm wget sudo build-essential
         
     - name: Cache cmake
       uses: actions/cache@v3
@@ -52,7 +52,9 @@ jobs:
         # Get the minimum version of cmake dlib supports
         wget https://cmake.org/files/v3.10/cmake-3.10.0-Linux-x86_64.tar.gz
         tar -xf cmake-3.10.0-Linux-x86_64.tar.gz -C ~
-        export PATH=$PATH:~/cmake-3.10.0-Linux-x86_64/bin/cmake
+        # Add it to the path
+        export PATH=~/cmake-3.10.0-Linux-x86_64/bin:$PATH
+
       if: steps.cache-cmake-download.outputs.cache-hit != 'true'
       
 
@@ -78,7 +80,7 @@ jobs:
       run: |
         mkdir build
         cd build
-        cmake -DCMAKE_PREFIX_PATH=/home/runner/ffmpeg-n5.1.3_installation .. 
+        ~/cmake-3.10.0-Linux-x86_64/bin/cmake -DCMAKE_PREFIX_PATH=/home/runner/ffmpeg-n5.1.3_installation .. 
     
     - name: Build just tests
       run: |
