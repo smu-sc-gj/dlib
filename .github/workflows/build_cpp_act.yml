@@ -97,6 +97,7 @@ jobs:
         cd build
         make -j2
 
+  ubuntu-latest-gcc-11-blas_act:
     runs-on: 'ubuntu-latest'
     steps:
     - uses: actions/checkout@v2
